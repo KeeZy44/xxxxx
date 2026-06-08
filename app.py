@@ -2,30 +2,21 @@ import streamlit as st
 import pandas as pd
 import sqlite3
 import datetime
-from groq import Groq
-import re
 
 # Sayfa Ayarları
-st.set_page_config(page_title="Mehmet Ali - AI Fitness Hub V2", layout="wide")
+st.set_page_config(page_title="Mehmet Ali - Fitness Dashboard V3", layout="wide")
 
-# Groq API Şifresi
-GROQ_API_KEY = "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"
-client = Groq(api_key=GROQ_API_KEY)
+st.title("🏋️ Mehmet Ali - Kişisel Fitness Takip Paneli")
+st.markdown("Hacim Odaklı 3 Günlük Üst Vücut Programı & Kilo Takip Otomasyonu")
 
-st.title("⚡ Mehmet Ali - AI Fitness & Yaşam Otomasyon Merkezi (V2)")
-st.markdown("Gelişmiş Veritabanı, Canlı Analitik ve Zamanlayıcı Entegrasyonu | 2026")
-
-# --- GELİŞMİŞ YEREL VERİTABANI FONKSİYONLARI ---
+# --- VERİTABANI İŞLEMLERİ ---
 def veritabanini_hazirla():
     conn = sqlite3.connect('fitness_kocum.db')
     c = conn.cursor()
-    # Ana kayıt tablosu
-    c.execute('''CREATE TABLE IF NOT EXISTS gunluk_kayitlar
-                 (tarih TEXT, mesaj_tipi TEXT, kullanici_mesaji TEXT, ai_hesabi TEXT, 
-                  kalori INTEGER, protein INTEGER, karb INTEGER, yag INTEGER)''')
-    # Profil ayarları tablosu (Kalıcılık için)
     c.execute('''CREATE TABLE IF NOT EXISTS profil_ayarlari
                  (id INTEGER PRIMARY KEY, boy INTEGER, kilo REAL, yas INTEGER)''')
+    c.execute('''CREATE TABLE IF NOT EXISTS kilo_gecmisi
+                 (tarih TEXT UNIQUE, kilo REAL)''')
     conn.commit()
     conn.close()
 
@@ -37,291 +28,99 @@ def profil_getir():
     conn.close()
     if res:
         return res[0], res[1], res[2]
-    return 180, 80.0, 20  # Varsayılan değerler
+    return 180, 80.0, 20
 
 def profil_kaydet(boy, kilo, yas):
     conn = sqlite3.connect('fitness_kocum.db')
     c = conn.cursor()
     c.execute("INSERT OR REPLACE INTO profil_ayarlari (id, boy, kilo, yas) VALUES (1, ?, ?, ?)", (boy, kilo, yas))
+    bugun_str = datetime.date.today().strftime("%Y-%m-%d")
+    c.execute("INSERT OR REPLACE INTO kilo_gecmisi (tarih, kilo) VALUES (?, ?)", (bugun_str, kilo))
     conn.commit()
     conn.close()
 
-def local_veri_kaydet(mesaj_tipi, kullanici_mesaji, ai_hesabi, kalori=0, protein=0, karb=0, yag=0):
-    try:
-        conn = sqlite3.connect('fitness_kocum.db')
-        c = conn.cursor()
-        tarih = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        c.execute("INSERT INTO gunluk_kayitlar VALUES (?, ?, ?, ?, ?, ?, ?, ?)", 
-                  (tarih, mesaj_tipi, kullanici_mesaji, ai_hesabi, kalori, protein, karb, yag))
-        conn.commit()
-        conn.close()
-    except:
-        pass
-
-# Veritabanını ilk açılışta tetikle
 veritabanini_hazirla()
 
-# --- SOL PANEL: KALICI PROFİL VE ÖLÇÜMLER ---
-st.sidebar.header("👤 Kalıcı Profil Ayarları")
+# --- SOL PANEL: PROFİL VE HEDEFLER ---
+st.sidebar.header("👤 Güncel Durum")
 v_boy, v_kilo, v_yas = profil_getir()
 
-boy = st.sidebar.number_input("Boyunuz (cm):", value=v_boy, step=1)
-kilo = st.sidebar.number_input("Güncel Kilo (kg):", value=v_kilo, step=0.1)
-yas = st.sidebar.number_input("Yaşınız:", value=v_yas, step=1)
+boy = st.sidebar.number_input("Boy (cm):", value=v_boy, step=1)
+kilo = st.sidebar.number_input("Kilo (kg):", value=v_kilo, step=0.1)
+yas = st.sidebar.number_input("Yaş:", value=v_yas, step=1)
 
-if st.sidebar.button("💾 Ölçümleri Hafızaya Kazı"):
+if st.sidebar.button("💾 Kiloyu ve Profili Kaydet"):
     profil_kaydet(boy, kilo, yas)
-    st.sidebar.success("Profil başarıyla kilitlendi!")
+    st.sidebar.success("Kilo geçmişe işlendi!")
+    st.rerun()
 
-# Yağ Yakım Formülü (Mifflin-St Jeor)
-bmh = (10 * kilo) + (6.25 * boy) - (5 * yas) + 5
-hedef_kalori = int(bmh * 1.375 - 500)
+# Hesaplamalar
 hedef_protein = int(kilo * 2.2)
-hedef_yag = int(kilo * 0.8)
-hedef_karb = int((hedef_kalori - ((hedef_protein * 4) + (hedef_yag * 9))) / 4)
-
 st.sidebar.markdown("---")
-st.sidebar.subheader("🎯 Günlük Makro Hedefleri")
-st.sidebar.metric(label="Hedef Kalori", value=f"{hedef_kalori} kcal")
-st.sidebar.write(f"🍗 **Protein:** {hedef_protein}g | 🥑 **Yağ:** {hedef_yag}g")
+st.sidebar.subheader("🎯 Günlük Protein Hedefin")
+st.sidebar.metric(label="Gerekli Protein", value=f"{hedef_protein} g")
 
-# --- ANLIK ÖĞÜN EKLEME ALANI ---
-st.sidebar.markdown("---")
-st.sidebar.subheader("🍽️ Yapay Zekaya Öğün Ekle")
-yeni_ogun = st.sidebar.text_area("Ne yedin?", placeholder="Örn: 200g tavuk göğsü, 1 kase pilav...", key="web_ogun_input")
+# --- MERKEZİ SEKME SİSTEMİ ---
+tab_program, tab_kilo = st.tabs(["📅 Salon Programım", "📈 Haftalık Kilo Takibi"])
 
-if st.sidebar.button("Koça Gönder & Kaydet"):
-    if yeni_ogun:
-        with st.spinner("Demir Koç hesaplıyor..."):
-            try:
-                sistem_komutu = "Sen Mehmet Ali'nin fitness koçusun. Girdileri analiz et ve net bir şekilde 'Kalori: X kcal', 'Protein: Y gram' formatında yanıt üret."
-                completion = client.chat.completions.create(
-                    model="llama-3.1-8b-instant",
-                    messages=[{"role": "system", "content": sistem_komutu}, {"role": "user", "content": yeni_ogun}],
-                    temperature=0.3,
-                )
-                ai_cevabi = completion.choices[0].message.content
-                kalori, protein = 0, 0
-                k_match = re.search(r'Kalori:\s*(\d+)', ai_cevabi, re.IGNORECASE)
-                p_match = re.search(r'Protein:\s*(\d+)', ai_cevabi, re.IGNORECASE)
-                if k_match: kalori = int(k_match.group(1))
-                if p_match: protein = int(p_match.group(1))
-                
-                local_veri_kaydet("Beslenme", yeni_ogun, ai_cevabi, kalori, protein, 0, 0)
-                st.sidebar.success("Kaydedildi!")
-                st.rerun()
-            except Exception as e:
-                st.sidebar.error(f"Hata: {e}")
-
-# --- VERİLERİ DETAYLI ÇEKME FONKSİYONLARI ---
-def gunluk_ozet_yukle():
-    try:
-        conn = sqlite3.connect('fitness_kocum.db')
-        bugun_str = datetime.datetime.now().strftime("%Y-%m-%d")
-        df = pd.read_sql_query("SELECT * FROM gunluk_kayitlar WHERE tarih LIKE ?", conn, params=(f"{bugun_str}%",))
-        conn.close()
-        
-        beslenme_df = df[df['mesaj_tipi'] == 'Beslenme']
-        al_kalori = beslenme_df['kalori'].sum() if not beslenme_df.empty else 0
-        al_protein = beslenme_df['protein'].sum() if not beslenme_df.empty else 0
-        
-        su_df = df[df['mesaj_tipi'] == 'Su']
-        al_su = su_df['kalori'].sum() if not su_df.empty else 0
-        
-        kreatin_df = df[df['mesaj_tipi'] == 'Kreatin']
-        al_kreatin = True if not kreatin_df.empty else False
-        
-        return al_kalori, al_protein, al_su, al_kreatin
-    except:
-        return 0, 0, 0, False
-
-alınan_kalori, alınan_protein, al_su, al_kreatin = gunluk_ozet_yukle()
-
-# --- MERKEZİ SEKME SİSTEMİ (TAB) ---
-tab_ana, tab_grafik, tab_saglik, tab_zamanlayici = st.tabs([
-    "📊 Günlük Durum & Program", "📈 Haftalık Canlı Analiz", "🩺 Fizik Tedavi & Mikrolar", "⏱️ Pomodoro & Set Sayacı"
-])
-
-# --- TAB 1: GÜNLÜK DURUM VE ANTRENMAN ---
-with tab_ana:
-    st.subheader("📈 Günlük İlerleme Durumu")
-    col_m1, col_m2 = st.columns(2)
-    with col_m1:
-        st.write(f"🍗 Protein Tüketimi ({alınan_protein}g / {hedef_protein}g)")
-        st.progress(min(alınan_protein / max(hedef_protein, 1), 1.0))
-    with col_m2:
-        st.write(f"🔥 Kalori Alımı ({alınan_kalori} kcal / {hedef_kalori} kcal)")
-        st.progress(min(alınan_kalori / max(hedef_kalori, 1), 1.0))
-
-    st.markdown("---")
-    
-    # Genel Kurallar Kılavuzu
+# --- TAB 1: SALON PROGRAMI ---
+with tab_program:
+    # Kurallar Genişletme Paneli
     with st.expander("🚨 ÖNEMLİ ANTRENMAN KURALLARI & TEKNİKLER"):
         st.markdown("**• Isınma:** 10 dk hafif yürüyüş + eklem hareketleri. [cite: 4]")
-        st.markdown("**• Kardiyo:** Antrenman sonunda 15 dk (10 eğim, 5 hız). [cite: 5]")
+        st.markdown("**• Kardiyo:** Sonunda 15 dk (10 eğim, 5 hız). [cite: 5]")
         st.markdown("**• Dinlenme:** Set arası 2-3 dk, hareket arası 1 dk. [cite: 6]")
         st.markdown("**• RPT:** İlk set en ağır. Sonraki setlerde ağırlığı %10 düşür, tekrarı artır. [cite: 8, 9]")
         st.markdown("**• Rest-Pause (RP):** Set bitince 15 sn dinlen, +3-5 tekrar daha yap (3 kez tekrarla). [cite: 10]")
 
-    st.subheader("📅 Haftalık Salon Programı (Hacim Odaklı & Üst Vücut) [cite: 1, 2]")
-    
     secilen_gun = st.selectbox(
-        "Görmek istediğiniz antrenman gününü seçin:",
+        "Hangi günün programına bakacaksın?",
         ["Pazartesi (1. Gün: Göğüs & Omuz)", "Çarşamba (2. Gün: Sırt & Kol)", "Cuma (3. Gün: Hipertrofi & Detay)", "Dinlenme Günü"]
     )
 
     if secilen_gun == "Pazartesi (1. Gün: Göğüs & Omuz)":
-        st.markdown("### 🔴 1. GÜN: GÖĞÜS & OMUZ (Pazartesi) [cite: 11]")
-        
-        with st.container():
-            st.info("🏋️ **1. Olympic Flat Bench Press**\n\n* **Ekipman:** Flat Bench\n* **Set x Tekrar:** 3 x 6-8-10\n* **Teknik:** RPT (RIR 1-2) [cite: 12]")
-        with st.container():
-            st.info("🏋️ **2. Hammer Incline Press**\n\n* **Ekipman:** Incline Machine\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Kontrollü Negatif [cite: 12]")
-        with st.container():
-            st.info("🏋️ **3. Plate-Loaded Shoulder Press**\n\n* **Ekipman:** Shoulder Machine\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** RP (Son Set Rest-Pause) [cite: 12]")
-        with st.container():
-            st.info("🏋️ **4. Dumbbell Lateral Raise**\n\n* **Ekipman:** Dumbbell\n* **Set x Tekrar:** 3 x 12-15\n* **Teknik:** RP (Son Set Rest-Pause) [cite: 12]")
-        with st.container():
-            st.info("🏋️ **5. Functional Trainer Fly**\n\n* **Ekipman:** Cable Cross\n* **Set x Tekrar:** 3 x 12-15\n* **Teknik:** Squeeze (Sıkıştır) [cite: 12]")
-        with st.container():
-            st.info("🏋️ **6. Cable Pushdown**\n\n* **Ekipman:** Cable Station\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** RP (Son Set Rest-Pause) [cite: 12]")
+        st.markdown("### 🔴 1. GÜN: GÖĞÜS & OMUZ [cite: 11]")
+        st.info("🏋️ **1. Olympic Flat Bench Press**\n\n* **Ekipman:** Flat Bench | **Set/Tekrar:** 3 x 6-8-10 | **Teknik:** RPT (RIR 1-2) [cite: 12]")
+        st.info("🏋️ **2. Hammer Incline Press**\n\n* **Ekipman:** Incline Machine | **Set/Tekrar:** 3 x 8-10 | **Teknik:** Kontrollü Negatif [cite: 12]")
+        st.info("🏋️ **3. Plate-Loaded Shoulder Press**\n\n* **Ekipman:** Shoulder Machine | **Set/Tekrar:** 3 x 8-10 | **Teknik:** RP (Son Set) [cite: 12]")
+        st.info("🏋️ **4. Dumbbell Lateral Raise**\n\n* **Ekipman:** Dumbbell | **Set/Tekrar:** 3 x 12-15 | **Teknik:** RP (Son Set) [cite: 12]")
+        st.info("🏋️ **5. Functional Trainer Fly**\n\n* **Ekipman:** Cable Cross | **Set/Tekrar:** 3 x 12-15 | **Teknik:** Squeeze (Sıkıştır) [cite: 12]")
+        st.info("🏋️ **6. Cable Pushdown**\n\n* **Ekipman:** Cable Station | **Set/Tekrar:** 3 x 12 | **Teknik:** RP (Son Set) [cite: 12]")
 
     elif secilen_gun == "Çarşamba (2. Gün: Sırt & Kol)":
-        st.markdown("### 🟢 2. GÜN: SIRT & KOL (Çarşamba) [cite: 13]")
-        
-        with st.container():
-            st.success("💪 **1. Hammer Pull-Down**\n\n* **Ekipman:** Pull-Down Machine\n* **Set x Tekrar:** 3 x 6-8-10\n* **Teknik:** RPT (RIR 1-2) [cite: 14]")
-        with st.container():
-            st.success("💪 **2. Plate-Loaded Row**\n\n* **Ekipman:** Row Machine\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Sırtını İyice Sık [cite: 14]")
-        with st.container():
-            st.success("💪 **3. Dumbbell Row**\n\n* **Ekipman:** Dumbbell + Bench\n* **Set x Tekrar:** 3 x 10\n* **Teknik:** Dirseği Geri Çek [cite: 14]")
-        with st.container():
-            st.success("💪 **4. Preacher Curl**\n\n* **Ekipman:** Preacher Bench\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** RP (Son Set Rest-Pause) [cite: 15]")
-        with st.container():
-            st.success("💪 **5. Hammer Curls**\n\n* **Ekipman:** Dumbbell\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** Dirsekleri Sabitle [cite: 15]")
-        with st.container():
-            st.success("💪 **6. Cable Facepull**\n\n* **Ekipman:** Cable Station\n* **Set x Tekrar:** 3 x 15\n* **Teknik:** Omuz Sağlığı [cite: 15]")
+        st.markdown("### 🟢 2. GÜN: SIRT & KOL [cite: 13]")
+        st.success("💪 **1. Hammer Pull-Down**\n\n* **Ekipman:** Pull-Down Machine | **Set/Tekrar:** 3 x 6-8-10 | **Teknik:** RPT (RIR 1-2) [cite: 14]")
+        st.success("💪 **2. Plate-Loaded Row**\n\n* **Ekipman:** Row Machine | **Set/Tekrar:** 3 x 8-10 | **Teknik:** Sırtını İyice Sık [cite: 14]")
+        st.success("💪 **3. Dumbbell Row**\n\n* **Ekipman:** Dumbbell + Bench | **Set/Tekrar:** 3 x 10 | **Teknik:** Dirseği Geri Çek [cite: 14]")
+        st.success("💪 **4. Preacher Curl**\n\n* **Ekipman:** Preacher Bench | **Set/Tekrar:** 3 x 12 | **Teknik:** RP (Son Set) [cite: 15]")
+        st.success("💪 **5. Hammer Curls**\n\n* **Ekipman:** Dumbbell | **Set/Tekrar:** 3 x 12 | **Teknik:** Dirsekleri Sabitle [cite: 15]")
+        st.success("💪 **6. Cable Facepull**\n\n* **Ekipman:** Cable Station | **Set/Tekrar:** 3 x 15 | **Teknik:** Omuz Sağlığı [cite: 15]")
 
     elif secilen_gun == "Cuma (3. Gün: Hipertrofi & Detay)":
-        st.markdown("### 🔵 3. GÜN: HİPERTROFİ & DETAY (Cuma) [cite: 16]")
-        
-        # TÜM GÜVENLİK KONTROLLERİ YAPILDI, SADECE DÜZGÜN ST.INFO KUTULARI BIRAKILDI
-        with st.container():
-            st.info("🔥 **1. Olympic Incline Bench Press**\n\n* **Ekipman:** Incline Bench\n* **Set x Tekrar:** 3 x 6-8-10\n* **Teknik:** RPT (Üst Göğüs) [cite: 17]")
-        with st.container():
-            st.info("🔥 **2. Lat Pulldown (Geniş Tutuş)**\n\n* **Ekipman:** Cable Station\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Göğse Doğru Çek [cite: 17]")
-        with st.container():
-            st.info("🔥 **3. Hammer Shoulder Press**\n\n* **Ekipman:** Shoulder Machine\n* **Set x Tekrar:** 3 x 10\n* **Teknik:** Kontrollü [cite: 17]")
-        with st.container():
-            st.info("🔥 **4. Seated Calf Raise**\n\n* **Ekipman:** Calf Machine\n* **Set x Tekrar:** 4 x 15-20\n* **Teknik:** Diz Bükülmeden [cite: 17]")
-        with st.container():
-            st.info("🔥 **5. Incline DB Curl**\n\n* **Ekipman:** Incline Bench\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** Maksimum Esneme [cite: 17]")
-        with st.container():
-            st.info("🔥 **6. Triceps Overhead Extension**\n\n* **Ekipman:** Cable/Dumbbell\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** Dirsekler Yanmasın [cite: 17]")
+        st.markdown("### 🔵 3. GÜN: HİPERTROFİ & DETAY [cite: 16]")
+        st.info("🔥 **1. Olympic Incline Bench Press**\n\n* **Ekipman:** Incline Bench | **Set/Tekrar:** 3 x 6-8-10 | **Teknik:** RPT (Üst Göğüs) [cite: 17]")
+        st.info("🔥 **2. Lat Pulldown (Geniş Tutuş)**\n\n* **Ekipman:** Cable Station | **Set/Tekrar:** 3 x 8-10 | **Teknik:** Göğse Doğru Çek [cite: 17]")
+        st.info("🔥 **3. Hammer Shoulder Press**\n\n* **Ekipman:** Shoulder Machine | **Set/Tekrar:** 3 x 10 | **Teknik:** Kontrollü [cite: 17]")
+        st.info("🔥 **4. Seated Calf Raise**\n\n* **Ekipman:** Calf Machine | **Set/Tekrar:** 4 x 15-20 | **Teknik:** Diz Bükülmeden [cite: 17]")
+        st.info("🔥 **5. Incline DB Curl**\n\n* **Ekipman:** Incline Bench | **Set/Tekrar:** 3 x 12 | **Teknik:** Maksimum Esneme [cite: 17]")
+        st.info("🔥 **6. Triceps Overhead Extension**\n\n* **Ekipman:** Cable/Dumbbell | **Set/Tekrar:** 3 x 12 | **Teknik:** Dirsekler Yanmasın [cite: 17]")
 
     elif secilen_gun == "Dinlenme Günü":
-        st.markdown("### 🟡 Dinlenme Günü")
-        st.warning("🥳 Bugün kasların dinlenme ve büyüme günü! Diz sakatlığı nedeniyle ağır bacak antrenmanı eklemedik. Evdeki fizik tedavi hareketlerini aksatmadan tamamla. [cite: 18]")
+        st.markdown("### 🟡 Dinlenme Günü [cite: 18]")
+        st.warning("🥳 Bugün büyüme günü şampiyon! Sakatlık riski olmaması adına bacak antrenmanı eklemedik. Evdeki fizik tedavi ve esnemelerini yapabilirsin. [cite: 18]")
 
-# --- TAB 2: HAFTALIK CANLI ANALİZ GRAFİĞİ ---
-with tab_grafik:
-    st.subheader("📈 Son 7 Günlük Makro Analiz Raporu")
+# --- TAB 2: HAFTALIK KİLO TAKİBİ ---
+with tab_kilo:
+    st.subheader("📈 Kilo Değişim Trendi")
     try:
         conn = sqlite3.connect('fitness_kocum.db')
-        df_all = pd.read_sql_query("SELECT tarih, kalori, protein, mesaj_tipi FROM gunluk_kayitlar WHERE mesaj_tipi='Beslenme'", conn)
+        kilo_df = pd.read_sql_query("SELECT tarih, kilo FROM kilo_gecmisi ORDER BY tarih ASC", conn)
         conn.close()
         
-        if not df_all.empty:
-            df_all['tarih'] = pd.to_datetime(df_all['tarih']).dt.date
-            grafik_df = df_all.groupby('tarih').sum().reset_index()
-            grafik_df = grafik_df.sort_values('tarih').tail(7)
-            
-            st.write("🔥 **Günlük Kalori Dalgalanma Grafiği**")
-            st.line_chart(data=grafik_df, x='tarih', y='kalori', use_container_width=True)
-            
-            st.write("🍗 **Günlük Protein Tüketim Analizi (g)**")
-            st.bar_chart(data=grafik_df, x='tarih', y='protein', use_container_width=True)
+        if not kilo_df.empty:
+            st.line_chart(data=kilo_df, x='tarih', y='kilo', use_container_width=True)
+            st.table(kilo_df.tail(7))
         else:
-            st.info("Grafik oluşturulabilmesi için veritabanında en az 1 beslenme kaydı bulunmalıdır.")
+            st.info("Kilo grafiği için sol panelden kilonuzu girip kaydetmelisiniz.")
     except Exception as e:
-        st.error(f"Grafik yükleme hatası: {e}")
-
-# --- TAB 3: MİKRO BESİNLER VE FİZİK TEDAVİ ---
-with tab_saglik:
-    st.subheader("🩺 Fizik Tedavi & Hidrasyon İstasyonu")
-    col_s1, col_s2 = st.columns(2)
-    
-    with col_s1:
-        st.write(f"💧 **Bugün İçilen Su:** {al_su} ml")
-        su_ekle = st.selectbox("Su Miktarı Ekle:", [250, 500, 750, 1000])
-        if st.button("🥤 Suyu Kafaya Dik"):
-            local_veri_kaydet("Su", f"{su_ekle}ml su içildi", "", kalori=su_ekle)
-            st.success(f"{su_ekle} ml Su Başarıyla Eklendi!")
-            st.rerun()
-            
-        st.markdown("---")
-        if al_kreatin:
-            st.success("💪 Bugün 5g Kreatin Alındı! Hücreler dolu.")
-        else:
-            st.warning("⚠️ Bugün henüz Kreatin almadın!")
-            if st.button("💊 Kreatin Aldım"):
-                local_veri_kaydet("Kreatin", "5g Kreatin tüketildi", "", kalori=5)
-                st.success("Kreatin kaydı işlendi!")
-                st.rerun()
-                
-    with col_s2:
-        st.write("📋 **Günlük Fizik Tedavi Görevleri (Diz Sakatlığı)**")
-        t1 = st.checkbox("Düz bacak kaldırma (3 set x 15 tekrar)")
-        t2 = st.checkbox("Duvara yaslanarak squat (Isometrik hold - 45 sn)")
-        t3 = st.checkbox("Foam Roller ile bacak/quad masajı (10 dk)")
-        
-        if t1 and t2 and t3:
-            st.balloons()
-            st.success("🏆 Harika! Bugün diz tedavisini eksiksiz tamamladın şampiyon!")
-
-# --- TAB 4: AKILLI POMODORO VE SET SAYACI ---
-with tab_zamanlayici:
-    st.subheader("⏱️ Odaklanma Odası (KPSS Ders Çalışma & Set Arası)")
-    st.write("Aşağıdaki widget tarayıcı tabanlı çalışır, süre akarken Streamlit donmaz veya kasmaz!")
-    
-    # Canlı HTML/JS Pomodoro Sayacı Component'i
-    pomodoro_html = """
-    <div style="background-color:#1e1e24; color:white; padding:20px; border-radius:12px; text-align:center; font-family:Arial, sans-serif; box-shadow: 0px 4px 10px rgba(0,0,0,0.3);">
-        <h2 id="timer-title" style="margin-bottom:10px; color:#ff4b4b;">🎯 KPSS Odaklanma Modu (45 Dk)</h2>
-        <div id="countdown" style="font-size:48px; font-weight:bold; margin:20px 0; font-family:monospace; color:#00ffcc;">45:00</div>
-        <button onclick="startTimer(2700, '🎯 KPSS Odaklanma Modu')" style="background-color:#ff4b4b; color:white; border:none; padding:10px 20px; margin:5px; border-radius:5px; cursor:pointer; font-weight:bold;">45 Dk KPSS Ders</button>
-        <button onclick="startTimer(90, '💪 Set Arası Dinlenme')" style="background-color:#007bff; color:white; border:none; padding:10px 20px; margin:5px; border-radius:5px; cursor:pointer; font-weight:bold;">90 Sn Set Arası</button>
-        <button onclick="stopTimer()" style="background-color:#6c757d; color:white; border:none; padding:10px 20px; margin:5px; border-radius:5px; cursor:pointer; font-weight:bold;">Durdur / Sıfırla</button>
-    </div>
-
-    <script>
-        let timer;
-        function startTimer(seconds, title) {
-            clearInterval(timer);
-            document.getElementById("timer-title").innerText = title;
-            let timeRun = seconds;
-            updateDisplay(timeRun);
-            
-            timer = setInterval(function() {
-                timeRun--;
-                updateDisplay(timeRun);
-                if (timeRun <= 0) {
-                    clearInterval(timer);
-                    alert("⏰ Süre Tamamlandı Şampiyon! Görev Başarılı.");
-                }
-            }, 1000);
-        }
-        function stopTimer() {
-            clearInterval(timer);
-            document.getElementById("countdown").innerText = "00:00";
-            document.getElementById("timer-title").innerText = "⏱️ Süre Bekliyor...";
-        }
-        function updateDisplay(sec) {
-            let mins = Math.floor(sec / 60);
-            let remSecs = sec % 60;
-            document.getElementById("countdown").innerText = 
-                (mins < 10 ? "0" : "") + mins + ":" + (remSecs < 10 ? "0" : "") + remSecs;
-        }
-    </script>
-    """
-    st.components.v1.html(pomodoro_html, height=220)
+        st.error(f"Grafik yüklenirken bir hata oluştu: {e}")
