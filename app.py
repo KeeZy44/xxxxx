@@ -154,56 +154,41 @@ with tab_ana:
         st.progress(min(alınan_kalori / max(hedef_kalori, 1), 1.0))
 
     st.markdown("---")
-    st.subheader("📅 Güncel Antrenman Programı")
+    st.subheader("📅 Haftalık Salon Programı")
     
-    # Mobil Uyumlu Kart Tasarımı (Tablo yerine alt alta bloklar)
-    st.info("💡 Telefon ekranında mükemmel görünüm için optimize edildi! Aşağı kaydırarak tüm hareketleri görebilirsin.")
-    
-    # HAREKET 1
-    with st.container():
-        st.markdown("### 🏋️ 1. Olympic Flat Bench Press")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("**Bölge/Ekipman:** Flat Bench")
-            st.markdown("**Set x Tekrar:** 3 x 6-8-10")
-        with col2:
-            st.markdown("**Özel Teknik:** RPT (RIR 1-2)")
-        st.markdown("---")
+    # Telefonlar için en pratik gün seçici (Tıklayınca o günün tüm hareketleri jilet gibi alta açılır)
+    secilen_gun = st.selectbox(
+        "Görmek istediğiniz antrenman gününü seçin:",
+        ["Pazartesi (Göğüs & Omuz)", "Çarşamba (Sırt & Kol)", "Cuma (Hipertrofi Odaklı Üst Gelişim)", "Dinlenme Günü"]
+    )
 
-    # HAREKET 2
-    with st.container():
-        st.markdown("### 🦾 2. Hammer Incline Press")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("**Bölge/Ekipman:** Incline Machine")
-            st.markdown("**Set x Tekrar:** 3 x 8-10")
-        with col2:
-            st.markdown("**Özel Teknik:** Kontrollü Negatif")
-        st.markdown("---")
-
-    # HAREKET 3
-    with st.container():
-        st.markdown("### 🚀 3. Plate-Loaded Shoulder Press")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("**Bölge/Ekipman:** Shoulder Machine")
-            st.markdown("**Set x Tekrar:** 3 x 8-10")
-        with col2:
-            st.markdown("**Özel Teknik:** RP (Son Set Rest-Pause)")
-        st.markdown("---")
-
-    # HAREKET 4
-    with st.container():
-        st.markdown("### ✈️ 4. Dumbbell Lateral Raise")
-        col1, col2 = st.columns(2)
-        with col1:
-            st.markdown("**Bölge/Ekipman:** Dumbbell / Omuz")
-            st.markdown("**Set x Tekrar:** 4 x 12-15")
-        with col2:
-            st.markdown("**Özel Teknik:** Son Set Drop Set (Maksimum Yanma)")
-        st.markdown("---")
+    if secilen_gun == "Pazartesi (Göğüs & Omuz)":
+        st.markdown("### 🔴 Pazartesi: Göğüs & Omuz Günü")
         
-    st.success("🥳 Program tamamlandı! Fizik tedavi hareketlerini yapmayı unutma.")
+        st.info("⚡ **1. Olympic Flat Bench Press**\n* **Ekipman:** Flat Bench\n* **Set x Tekrar:** 3 x 6-8-10\n* **Teknik:** RPT (İlk set en ağır, sonra ağırlık düşür - RIR 1-2)")
+        st.info("⚡ **2. Hammer Incline Press**\n* **Ekipman:** Incline Machine\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Kontrollü Negatif (Ağırlığı 3 saniyede indir)")
+        st.info("⚡ **3. Plate-Loaded Shoulder Press**\n* **Ekipman:** Shoulder Machine\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Rest-Pause (Son set tükenişten sonra 15 sn dinlen, 3 tekrar daha çıkar)")
+        st.info("⚡ **4. Dumbbell Lateral Raise**\n* **Ekipman:** Dumbbell / Yan Omuz\n* **Set x Tekrar:** 4 x 12-15\n* **Teknik:** Son Set Drop Set (Ağırlığı azaltarak durmadan devam)")
+
+    elif secilen_gun == "Çarşamba (Sırt & Kol)":
+        st.markdown("### 🟢 Çarşamba: Sırt & Kol Günü")
+        
+        st.success("⚡ **1. Hammer Pull-Down**\n* **Ekipman:** Lat Pull Machine\n* **Set x Tekrar:** 3 x 6-8-10\n* **Teknik:** RPT (Sırt kaslarını zirvede tam sıkıştır)")
+        st.success("⚡ **2. Plate-Loaded Row**\n* **Ekipman:** Row Machine\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Dirseği gövdeye sıfır çek, gerilmeyi hisset")
+        st.success("⚡ **3. Preacher Curl**\n* **Ekipman:** Z-Bar / Sehpa\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** Tepe noktasında bicepsi 1 saniye sık barı yavaş bırak")
+        st.success("⚡ **4. Hammer Curls**\n* **Ekipman:** Dumbbell\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** Bilekleri bükmeden, ön kola odaklanarak kontrollü nizam")
+
+    elif secilen_gun == "Cuma (Hipertrofi Odaklı Üst Gelişim)":
+        st.markdown("### 🔵 Cuma: Hipertrofi Odaklı Üst Gövde")
+        
+        st.help("⚡ **1. Olympic Incline Bench Press**\n* **Ekipman:** Incline Bench / Üst Göğüs\n* **Set x Tekrar:** 3 x 6-8-10\n* **Teknik:** Ağır kiloyla göğüs kemiğine kontrollü indir ve patlayıcı güçle it")
+        st.help("⚡ **2. Lat Pulldown**\n* **Ekipman:** Geniş Tutuş Bar\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Göğse doğru çekiş, omuz küreklerini birbirine yaklaştır")
+        st.help("⚡ **3. Seated Calf Raise**\n* **Ekipman:** Calf Machine / Kalf\n* **Set x Tekrar:** 4 x 15-20\n* **Teknik:** Alt noktada tam esneme, parmak ucunda maksimum yükseliş")
+        st.help("⚡ **4. Triceps Extension**\n* **Ekipman:** Kablo / Halat\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** Dirsekleri gövdeye sabitle, sadece ön kolu hareket ettirerek kilitle")
+
+    elif secilen_gun == "Dinlenme Günü":
+        st.markdown("### 🟡 Dinlenme & Aktif İyileşme Günü")
+        st.warning("🥳 Bugün kasların büyüme günü şampiyon! Ağır kaldırmak yok. Diz sakatlığı için evdeki fizik tedavi hareketlerine ve esnemelere odaklan. Mikroları (Su ve Kreatin) eksik etme!")
 # --- TAB 2: HAFTALIK CANLI ANALİZ GRAFİĞİ ---
 with tab_grafik:
     st.subheader("📈 Son 7 Günlük Makro Analiz Raporu")
