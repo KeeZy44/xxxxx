@@ -154,30 +154,56 @@ with tab_ana:
         st.progress(min(alınan_kalori / max(hedef_kalori, 1), 1.0))
 
     st.markdown("---")
-    st.subheader("📅 Haftalık Salon Programı")
-    sub_tabs = st.tabs(["Pazartesi (Göğüs/Omuz)", "Çarşamba (Sırt/Kol)", "Cuma (Hipertrofi)", "Dinlenme"])
+    st.subheader("📅 Güncel Antrenman Programı")
     
-    with sub_tabs[0]:
-        st.table(pd.DataFrame({
-            "Egzersiz": ["Olympic Flat Bench Press", "Hammer Incline Press", "Plate-Loaded Shoulder Press", "Dumbbell Lateral Raise"],
-            "Set/Tekrar": ["3 x 6-8-10 (RPT)", "3 x 8-10", "3 x 8-10", "3 x 12-15"],
-            "Teknik": ["İlk set en ağır, sonra ağırlık düşür", "Yavaş negatif kontrol", "Son set Rest-Pause", "Maksimum yanma"]
-        }))
-    with sub_tabs[1]:
-        st.table(pd.DataFrame({
-            "Egzersiz": ["Hammer Pull-Down", "Plate-Loaded Row", "Preacher Curl", "Hammer Curls"],
-            "Set/Tekrar": ["3 x 6-8-10 (RPT)", "3 x 8-10", "3 x 12", "3 x 12"],
-            "Teknik": ["Sırt kaslarını sıkıştır", "Dirseği gövdeye çek", "Zirvede 1 sn bekle", "Bilekleri bükme"]
-        }))
-    with sub_tabs[2]:
-        st.table(pd.DataFrame({
-            "Egzersiz": ["Olympic Incline Bench Press", "Lat Pulldown", "Seated Calf Raise", "Triceps Extension"],
-            "Set/Tekrar": ["3 x 6-8-10", "3 x 8-10", "4 x 15-20", "3 x 12"],
-            "Teknik": ["Üst göğüs odaklı", "Geniş tutuş kontrollü", "Tam esneme", "Dirsekleri sabitle"]
-        }))
-    with sub_tabs[3]:
-        st.success("🥳 Aktif İyileşme Günü! Diz egzersizlerine ve esnemelere odaklan.")
+    # Mobil Uyumlu Kart Tasarımı (Tablo yerine alt alta bloklar)
+    st.info("💡 Telefon ekranında mükemmel görünüm için optimize edildi! Aşağı kaydırarak tüm hareketleri görebilirsin.")
+    
+    # HAREKET 1
+    with st.container():
+        st.markdown("### 🏋️ 1. Olympic Flat Bench Press")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**Bölge/Ekipman:** Flat Bench")
+            st.markdown("**Set x Tekrar:** 3 x 6-8-10")
+        with col2:
+            st.markdown("**Özel Teknik:** RPT (RIR 1-2)")
+        st.markdown("---")
 
+    # HAREKET 2
+    with st.container():
+        st.markdown("### 🦾 2. Hammer Incline Press")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**Bölge/Ekipman:** Incline Machine")
+            st.markdown("**Set x Tekrar:** 3 x 8-10")
+        with col2:
+            st.markdown("**Özel Teknik:** Kontrollü Negatif")
+        st.markdown("---")
+
+    # HAREKET 3
+    with st.container():
+        st.markdown("### 🚀 3. Plate-Loaded Shoulder Press")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**Bölge/Ekipman:** Shoulder Machine")
+            st.markdown("**Set x Tekrar:** 3 x 8-10")
+        with col2:
+            st.markdown("**Özel Teknik:** RP (Son Set Rest-Pause)")
+        st.markdown("---")
+
+    # HAREKET 4
+    with st.container():
+        st.markdown("### ✈️ 4. Dumbbell Lateral Raise")
+        col1, col2 = st.columns(2)
+        with col1:
+            st.markdown("**Bölge/Ekipman:** Dumbbell / Omuz")
+            st.markdown("**Set x Tekrar:** 4 x 12-15")
+        with col2:
+            st.markdown("**Özel Teknik:** Son Set Drop Set (Maksimum Yanma)")
+        st.markdown("---")
+        
+    st.success("🥳 Program tamamlandı! Fizik tedavi hareketlerini yapmayı unutma.")
 # --- TAB 2: HAFTALIK CANLI ANALİZ GRAFİĞİ ---
 with tab_grafik:
     st.subheader("📈 Son 7 Günlük Makro Analiz Raporu")
