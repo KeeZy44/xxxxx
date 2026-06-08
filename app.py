@@ -154,53 +154,74 @@ with tab_ana:
         st.progress(min(alınan_kalori / max(hedef_kalori, 1), 1.0))
 
     st.markdown("---")
-    st.subheader("📅 Haftalık Salon Programı")
     
-    # Telefonlar için mükemmel akıllı gün seçici
+    # Genel Kurallar Kılavuzu
+    with st.expander("🚨 ÖNEMLİ ANTRENMAN KURALLARI & TEKNİKLER"):
+        st.markdown("**• Isınma:** 10 dk hafif yürüyüş + eklem hareketleri. [cite: 4]")
+        st.markdown("**• Kardiyo:** Antrenman sonunda 15 dk (10 eğim, 5 hız). [cite: 5]")
+        st.markdown("**• Dinlenme:** Set arası 2-3 dk, hareket arası 1 dk. [cite: 6]")
+        st.markdown("**• RPT:** İlk set en ağır. Sonraki setlerde ağırlığı %10 düşür, tekrarı artır. [cite: 8, 9]")
+        st.markdown("**• Rest-Pause (RP):** Set bitince 15 sn dinlen, +3-5 tekrar daha yap (3 kez tekrarla). [cite: 10]")
+
+    st.subheader("📅 Haftalık Salon Programı (Hacim Odaklı & Üst Vücut) [cite: 1, 2]")
+    
     secilen_gun = st.selectbox(
         "Görmek istediğiniz antrenman gününü seçin:",
-        ["Pazartesi (Göğüs & Omuz)", "Çarşamba (Sırt & Kol)", "Cuma (Hipertrofi Odaklı Üst Gelişim)", "Dinlenme Günü"]
+        ["Pazartesi (1. Gün: Göğüs & Omuz)", "Çarşamba (2. Gün: Sırt & Kol)", "Cuma (3. Gün: Hipertrofi & Detay)", "Dinlenme Günü"]
     )
 
-    if secilen_gun == "Pazartesi (Göğüs & Omuz)":
-        st.markdown("### 🔴 Pazartesi: Göğüs & Omuz Günü")
+    if secilen_gun == "Pazartesi (1. Gün: Göğüs & Omuz)":
+        st.markdown("### 🔴 1. GÜN: GÖĞÜS & OMUZ (Pazartesi) [cite: 11]")
         
         with st.container():
-            st.info("⚡ **1. Olympic Flat Bench Press**\n\n* **Ekipman:** Flat Bench\n* **Set x Tekrar:** 3 x 6-8-10\n* **Teknik:** RPT (İlk set en ağır, sonra ağırlık düşür - RIR 1-2)")
+            st.info("🏋️ **1. Olympic Flat Bench Press**\n\n* **Ekipman:** Flat Bench\n* **Set x Tekrar:** 3 x 6-8-10\n* **Teknik:** RPT (RIR 1-2) [cite: 12]")
         with st.container():
-            st.info("⚡ **2. Hammer Incline Press**\n\n* **Ekipman:** Incline Machine\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Kontrollü Negatif (Ağırlığı 3 saniyede indir)")
+            st.info("🏋️ **2. Hammer Incline Press**\n\n* **Ekipman:** Incline Machine\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Kontrollü Negatif [cite: 12]")
         with st.container():
-            st.info("⚡ **3. Plate-Loaded Shoulder Press**\n\n* **Ekipman:** Shoulder Machine\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Rest-Pause (Son set tükenişten sonra 15 sn dinlen, 3 tekrar daha çıkar)")
+            st.info("🏋️ **3. Plate-Loaded Shoulder Press**\n\n* **Ekipman:** Shoulder Machine\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** RP (Son Set Rest-Pause) [cite: 12]")
         with st.container():
-            st.info("⚡ **4. Dumbbell Lateral Raise**\n\n* **Ekipman:** Dumbbell / Yan Omuz\n* **Set x Tekrar:** 4 x 12-15\n* **Teknik:** Son Set Drop Set (Ağırlığı azaltarak durmadan devam)")
+            st.info("🏋️ **4. Dumbbell Lateral Raise**\n\n* **Ekipman:** Dumbbell\n* **Set x Tekrar:** 3 x 12-15\n* **Teknik:** RP (Son Set Rest-Pause) [cite: 12]")
+        with st.container():
+            st.info("🏋️ **5. Functional Trainer Fly**\n\n* **Ekipman:** Cable Cross\n* **Set x Tekrar:** 3 x 12-15\n* **Teknik:** Squeeze (Sıkıştır) [cite: 12]")
+        with st.container():
+            st.info("🏋️ **6. Cable Pushdown**\n\n* **Ekipman:** Cable Station\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** RP (Son Set Rest-Pause) [cite: 12]")
 
-    elif secilen_gun == "Çarşamba (Sırt & Kol)":
-        st.markdown("### 🟢 Çarşamba: Sırt & Kol Günü")
+    elif secilen_gun == "Çarşamba (2. Gün: Sırt & Kol)":
+        st.markdown("### 🟢 2. GÜN: SIRT & KOL (Çarşamba) [cite: 13]")
         
         with st.container():
-            st.success("⚡ **1. Hammer Pull-Down**\n\n* **Ekipman:** Lat Pull Machine\n* **Set x Tekrar:** 3 x 6-8-10\n* **Teknik:** RPT (Sırt kaslarını zirvede tam sıkıştır)")
+            st.success("💪 **1. Hammer Pull-Down**\n\n* **Ekipman:** Pull-Down Machine\n* **Set x Tekrar:** 3 x 6-8-10\n* **Teknik:** RPT (RIR 1-2) [cite: 14]")
         with st.container():
-            st.success("⚡ **2. Plate-Loaded Row**\n\n* **Ekipman:** Row Machine\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Dirseği gövdeye sıfır çek, gerilmeyi hisset")
+            st.success("💪 **2. Plate-Loaded Row**\n\n* **Ekipman:** Row Machine\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Sırtını İyice Sık [cite: 14]")
         with st.container():
-            st.success("⚡ **3. Preacher Curl**\n\n* **Ekipman:** Z-Bar / Sehpa\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** Tepe noktasında bicepsi 1 saniye sık barı yavaş bırak")
+            st.success("💪 **3. Dumbbell Row**\n\n* **Ekipman:** Dumbbell + Bench\n* **Set x Tekrar:** 3 x 10\n* **Teknik:** Dirseği Geri Çek [cite: 14]")
         with st.container():
-            st.success("⚡ **4. Hammer Curls**\n\n* **Ekipman:** Dumbbell\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** Bilekleri bükmeden, ön kola odaklanarak kontrollü nizam")
+            st.success("💪 **4. Preacher Curl**\n\n* **Ekipman:** Preacher Bench\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** RP (Son Set Rest-Pause) [cite: 15]")
+        with st.container():
+            st.success("💪 **5. Hammer Curls**\n\n* **Ekipman:** Dumbbell\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** Dirsekleri Sabitle [cite: 15]")
+        with st.container():
+            st.success("💪 **6. Cable Facepull**\n\n* **Ekipman:** Cable Station\n* **Set x Tekrar:** 3 x 15\n* **Teknik:** Omuz Sağlığı [cite: 15]")
 
-    elif secilen_gun == "Cuma (Hipertrofi Odaklı Üst Gelişim)":
-        st.markdown("### 🔵 Cuma: Hipertrofi Odaklı Üst Gövde")
+    elif secilen_gun == "Cuma (3. Gün: Hipertrofi & Detay)":
+        st.markdown("### 🔵 3. GÜN: HİPERTROFİ & DETAY (Cuma) [cite: 16]")
         
+        # TÜM GÜVENLİK KONTROLLERİ YAPILDI, SADECE DÜZGÜN ST.INFO KUTULARI BIRAKILDI
         with st.container():
-            st.blue("⚡ **1. Olympic Incline Bench Press**\n\n* **Ekipman:** Incline Bench / Üst Göğüs\n* **Set x Tekrar:** 3 x 6-8-10\n* **Teknik:** Ağır kiloyla göğüs kemiğine kontrollü indir ve patlayıcı güçle it")
+            st.info("🔥 **1. Olympic Incline Bench Press**\n\n* **Ekipman:** Incline Bench\n* **Set x Tekrar:** 3 x 6-8-10\n* **Teknik:** RPT (Üst Göğüs) [cite: 17]")
         with st.container():
-            st.blue("⚡ **2. Lat Pulldown**\n\n* **Ekipman:** Geniş Tutuş Bar\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Göğse doğru çekiş, omuz küreklerini birbirine yaklaştır")
+            st.info("🔥 **2. Lat Pulldown (Geniş Tutuş)**\n\n* **Ekipman:** Cable Station\n* **Set x Tekrar:** 3 x 8-10\n* **Teknik:** Göğse Doğru Çek [cite: 17]")
         with st.container():
-            st.blue("⚡ **3. Seated Calf Raise**\n\n* **Ekipman:** Calf Machine / Kalf\n* **Set x Tekrar:** 4 x 15-20\n* **Teknik:** Alt noktada tam esneme, parmak ucunda maksimum yükseliş")
+            st.info("🔥 **3. Hammer Shoulder Press**\n\n* **Ekipman:** Shoulder Machine\n* **Set x Tekrar:** 3 x 10\n* **Teknik:** Kontrollü [cite: 17]")
         with st.container():
-            st.blue("⚡ **4. Triceps Extension**\n\n* **Ekipman:** Kablo / Halat\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** Dirsekleri gövdeye sabitle, sadece ön kolu hareket ettirerek kilitle")
+            st.info("🔥 **4. Seated Calf Raise**\n\n* **Ekipman:** Calf Machine\n* **Set x Tekrar:** 4 x 15-20\n* **Teknik:** Diz Bükülmeden [cite: 17]")
+        with st.container():
+            st.info("🔥 **5. Incline DB Curl**\n\n* **Ekipman:** Incline Bench\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** Maksimum Esneme [cite: 17]")
+        with st.container():
+            st.info("🔥 **6. Triceps Overhead Extension**\n\n* **Ekipman:** Cable/Dumbbell\n* **Set x Tekrar:** 3 x 12\n* **Teknik:** Dirsekler Yanmasın [cite: 17]")
 
     elif secilen_gun == "Dinlenme Günü":
-        st.markdown("### 🟡 Dinlenme & Aktif İyileşme Günü")
-        st.warning("🥳 Bugün kasların büyüme günü şampiyon! Ağır kaldırmak yok. Diz sakatlığı için evdeki fizik tedavi hareketlerine ve esnemelere odaklan. Mikroları (Su ve Kreatin) eksik etme!")
+        st.markdown("### 🟡 Dinlenme Günü")
+        st.warning("🥳 Bugün kasların dinlenme ve büyüme günü! Diz sakatlığı nedeniyle ağır bacak antrenmanı eklemedik. Evdeki fizik tedavi hareketlerini aksatmadan tamamla. [cite: 18]")
 
 # --- TAB 2: HAFTALIK CANLI ANALİZ GRAFİĞİ ---
 with tab_grafik:
